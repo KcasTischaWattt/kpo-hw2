@@ -23,8 +23,9 @@ public class CustomerAgent extends Agent {
     private List<Pair<Integer, Integer>> orders = new ArrayList<>();
     private int orderIndex = 0;
     private AID supervisor;
-    public CustomerAgent(String visitorName) {
+    public CustomerAgent(String visitorName, int time) {
         this.visitorName = visitorName;
+        this.time = time;
     }
     @Override
     protected void setup() {
@@ -60,7 +61,7 @@ public class CustomerAgent extends Agent {
                     myAgent.send(req);
                     mt = MessageTemplate.and(MessageTemplate.MatchConversationId("menu-creating"),
                             MessageTemplate.MatchInReplyTo(req.getReplyWith()));
-                    step = 1;
+                    step++;
                 }
                     break;
                 case 1: {
@@ -83,13 +84,15 @@ public class CustomerAgent extends Agent {
                         }
                     }
                     if (flag) {
-
+                        ACLMessage req = new ACLMessage(ACLMessage.REQUEST);
+                        req.addReceiver(supervisor);
+                        req.setContent(orders.get(orderIndex).toString() + time);
+                        req.setConversationId("create-order");
+                        req.setReplyWith("req" + System.currentTimeMillis());
+                        myAgent.send(req);
+                        mt = MessageTemplate.and(MessageTemplate.MatchConversationId("menu-creating"),
+                                MessageTemplate.MatchInReplyTo(req.getReplyWith()));
                     }
-                    ACLMessage req = new ACLMessage(ACLMessage.REQUEST);
-                    req.addReceiver(supervisor);
-                    req.setContent(orders.get(orderIndex).toString());
-                    req.setConversationId("create-order");
-                    myAgent.send(req);
                     orderIndex++;
 
                     if (orderIndex == orders.size()) {
